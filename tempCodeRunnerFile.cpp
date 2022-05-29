@@ -1,512 +1,681 @@
 #include<stdio.h>
-#include<cstring>
-#include<fstream>
+#include<windows.h>
 #include<conio.h>
+#include<ctype.h>
 #include<string.h>
-#include<iostream>
-using namespace std;
+#include<stdlib.h>
 
-int no = 0;
-char rec_ind[5], rec_gender[5],rec_desc[55];
-int rec_flag = 0;
+char ans=0; 
+int ok;
+int b, valid=0;
 
-struct record
-{
-	char age[5], ind[5];
-	char name[30];
-	char id[20];
-	char gender[10];
-	char description[100];
-}rec[20];
+void WelcomeScreen(void);
+void Title(void);
+void MainMenu(void);
+void LoginScreen(void);
+void Add_rec(void);
+void func_list();
+void Search_rec(void);
+void Edit_rec(void);
+void Dlt_rec(void);
+void ex_it(void);
 
-struct index
-{
-	char id[20], ind[20];
-}in[20], temp;
-
-void sort_index()
-{
-	int i, j;
-	for (i = 0;i < no - 1;i++)
-		for (j = 0;j < no - i - 1;j++)
-			if (strcmp(in[j].id, in[j + 1].id) > 0)
-			{
-				temp = in[j];
-				in[j] = in[j + 1];
-				in[j + 1] = temp;
-			}
+void gotoxy(short x, short y) {
+COORD pos = {x, y};
+SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 }
 
-void retrive_record(char* ind)
+struct patient
 {
-	int flag = 0, i = 0;
-	fstream f9;
-	f9.open("record.txt", ios::in);
-	while (!f9.eof())
-	{
-		f9.getline(rec[i].ind, 5, '|');
-		f9.getline(rec[i].id, 20, '|');
-		f9.getline(rec[i].name, 30, '|');
-		f9.getline(rec[i].age, 5, '|');
-		f9.getline(rec[i].gender, 10, '|');
-		f9.getline(rec[i].description, 100, '\n');
-		i++;
-	}
-	for (int j = 0;j < i;j++)
-	{
-		if (strcmp(rec[j].ind, ind) == 0)
-		{
-			strcpy_s(rec_ind, ind);
-			rec_flag = 1;
-			std::cout << "Patient record found\n";
-			std::cout << rec[j].id << "|" << rec[j].name << "|" << rec[j].age << "|" << rec[j].gender << "|" << rec[j].description << "\n";
-			return;
-		}
-	}
+	int age;
+	char Gender;
+	char First_Name[20];
+	char Last_Name[20]; 
+	char Contact_no[15];
+	char Address[30];
+	char Email[30];
+	char Doctor[20];
+	char Problem[20];
+};
 
-}
+struct patient  p,temp_c;
 
 
-int search_index(char* id)
+
+main(void)
 {
-	int flag = 0;
-	fstream ff;
-	ff.open("index.txt", ios::in);
-	int i = 0;
-	while (!ff.eof())
-	{
-		ff.getline(in[i].id, 20, '|');
-		ff.getline(in[i].ind, 20, '\n');
-		i++;
-
-	}
-	for (int j = 0;j < i;j++)
-	{
-		if (strcmp(in[j].id, id) == 0)
-		{
-			retrive_record(in[j].ind);
-			flag = 1;
-		}
-	}
-	//cout <<"flag is"<< flag ;
-	if (flag)
-	{
-		return 1;
-	}
-	else
-		return -1;
-}
-
-int search_id(char* id, int j)
-{
-	int flag = 0;
-	for (int i = 0;i < j;i++)
-		if (strcmp(rec[i].id, id) == 0)
-		{
-			flag = 1;
-			break;
-		}
-	if (flag)
-		return 1;
-	else
-		return -1;
-}
-
-
-
-
-void delet(char* st_id)
-{
-	rec_flag = 0;
-	int fr = 0;
-	rec_flag = search_index(st_id);
-	if (!rec_flag)
-	{
-		std::cout << "deletion faild record not found\n";
-		return;
-	}
-
-	for (int i = 0;i < no;i++)
-	{
-		if (strcmp(rec[i].ind, rec_ind) == 0)
-		{
-			fr = i;
-			break;
-		}
-	}
-	for (int i = fr;i < no - 1;i++)
-	{
-		rec[i] = rec[i + 1];
-		char str[3];
-		sprintf_s(str, "%d", i);
-		strcpy_s(rec[i].ind, str);
-	}
-	no--;
-
-	fstream f1, f2, f3;
-	f1.open("record.txt", ios::out);
-	f2.open("index.txt", ios::out);
-	f3.open("no.txt", ios::out);
-	f3 << no;
-	f3.close();
-
-	for (int i = 0;i < no;i++)
-	{
-
-		strcpy_s(in[i].id, rec[i].id);
-		strcpy_s(in[i].ind, rec[i].ind);
-
-	}
-	sort_index();
-
-	for (int i = 0;i < no;i++)
-	{
-		f1 << rec[i].ind << "|" << rec[i].id << "|" << rec[i].name << "|" << rec[i].age << "|" << rec[i].gender << "|" << rec[i].description << "\n";
-		f2 << in[i].id << "|" << in[i].ind << "\n";
-
-	}
-
-	f1.close();
-	f2.close();
-
-	std::cout << "deletion successful\n";
-}
-
-int owner_authen() {
-	char o_username[20], o_password[20];
-	char o_user[20] = "admin", o_pass[20] = "admi";
-	cout << endl << endl;
-	cout.width(25);
-	cout << "Enter Doctors User id and Password\n" << "------------------------------------------------------------------------------------\n";
-	cout << endl << "username: ";
-	cin >> o_username;
-	cout << "password: ";
-	cin >> o_password;
-	cout << "------------------------------------------------------------------------------------\n";
-	if (strcmp(o_username, o_user) == 0 && strcmp(o_password, o_pass) == 0)
-		return 1;
-	else
-		return 0;
-}
-
-void ret_gender(char* gender)
-{
-
-	int flag = 0;
-	for (int i = 0;i < no;i++)
-	{
-		if (strcmp(rec[i].gender, gender) == 0)
-		{
-			strcpy_s(rec_gender, gender);
-			rec_flag = 1;
-			std::cout << "patient record found\n";
-			std::cout << rec[i].id << "|" << rec[i].name << "|" << rec[i].age << "|" << rec[i].gender << "|" << rec[i].description << "\n";
-
-		}
-	}
-
-}
-
-void ret_desc(char* description)
-{
-
-	int flag = 0;
-	for (int i = 0;i < no;i++)
-	{
-		if (strcmp(rec[i].description, description) == 0)
-		{
-			strcpy_s(rec_desc, description);
-			rec_flag = 1;
-			std::cout << "patient record found\n";
-			std::cout << rec[i].id << "|" << rec[i].name << "|" << rec[i].age << "|" << rec[i].gender << "|" << rec[i].description << "\n";
-
-		}
-	}
-
-}
-
-
-
-int main()
-{
-	fstream file1, file2, file4;
-
-	cout << "---------------------------------------------------------------------------------------------------------------------";
-	std::cout << "\n\t\t\t \t  *    HOSPITAL MANAGEMENT SYSTEM * \n";
-	cout << "---------------------------------------------------------------------------------------------------------------------";
-
-
-	int ch;
-	char ind[5], st_id[20], name[20], age[5], gender[10], description[30], id[10];
-	int i = 0, user;
-label:
 	
-	cout << "\n enter user : 1.doctor \t    2.patient \n";
-	std::cin >> user;
-	switch (user) {
-	case 1: {
-		int check;
-		check = owner_authen();
-		if (check == 1)
+    WelcomeScreen();
+	Title();
+	LoginScreen();
+	
+	
+	
+
+}
+
+void WelcomeScreen(void) 
+{
+	
+	printf("\n\n\n\n\n\n\n\t\t\t\t#########################################");
+	printf("\n\t\t\t\t#\t\t WELCOME TO\t\t#");
+	printf("\n\t\t\t\t#      HOSPITAL MANAGEMENT SYSTEM    #");
+	printf("\n\t\t\t\t#########################################");
+	printf("\n\n\n\n\n Press any key to continue......\n");
+	getch();
+	system("cls");
+	
+}
+
+void Title(void)
+{
+	printf("\n\n\t\t----------------------------------------------------------------------------------");
+	printf("\n\t\t\t\t          HOSPITAL         ");
+	printf("\n\t\t----------------------------------------------------------------------------------");
+}
+
+void MainMenu(void)
+{
+	system("cls");
+	int choose;
+	Title();
+	printf("\n\n\n\n\n\t\t\t\t1. Add Patients Record\n");
+	printf("\n\t\t\t\t2. List Patients Record\n");
+	printf("\n\t\t\t\t3. Search Patients Record\n");
+	printf("\n\t\t\t\t4. Edit Patients Record\n");
+	printf("\n\t\t\t\t5. Delete Patients Record\n");
+	printf("\n\t\t\t\t6. Exit\n");
+	printf("\n\n\n \n\t\t\t\tChoose from 1 to 6:");
+	scanf("%i", &choose);
+	
+	switch(choose)
+	{
+	
+	case 1:
+	Add_rec();
+    	break;
+    case 2:
+    	func_list();
+    	break;
+	case 3:
+	Search_rec();
+    	break;
+	case 4:
+		Edit_rec();
+		break;
+	case 5:
+		Dlt_rec();
+		break;
+	case 6:
+		ex_it();
+    	break;
+
+	default:
+		printf("\t\t\tInvalid entry. Please enter right option :)");
+		getch();
+	}
+		
+	
+}
+
+void ex_it(void)
+{
+	system("cls");
+	Title();
+	printf("\n\n\n\n\n\t\t\tTHANK YOU FOR VISITING :)");
+	getch();
+	
+}
+
+void LoginScreen(void)
+{
+
+int e=0	;
+char Username[15];
+char Password[15];
+char original_Username[25]="admin";
+char original_Password[15]="admin";
+
+do
+{
+	printf("\n\n\n\n\t\t\t\tEnter your Username and Password :)");
+	printf("\n\n\n\t\t\t\t\tUSERNAME:");
+	scanf("%s",&Username);
+	
+	printf("\n\n\t\t\t\t\tPASSWORD:");
+	scanf("%s",&Password);
+	
+	if (strcmp(Username,original_Username)==0 && strcmp(Password,original_Password)==0)
+	{
+		printf("\n\n\n\t\t\t\t\t...Login Successfull...");
+		
+		
+		getch();
+		MainMenu();
+		break;
+	}
+	else
+	{
+		printf("\n\t\t\tPassword in incorrect:( Try Again :)");
+		e++;
+		getch();
+	}
+
+}
+while(e<=2);
+	if(e>2)
+	{
+	printf("You have cross the limit. You cannot login. :( :(");
+	getch();
+    ex_it();
+	}
+ 
+system("cls");
+}
+
+
+
+
+
+void Add_rec(void)
+{
+	system("cls");
+	Title();
+	
+	char ans;
+	FILE*ek;
+	ek=fopen("Record2.txt","a");
+	printf("\n\n\t\t\t!!!!!!!!!!!!!! Add Patients Record !!!!!!!!!!!!!\n");
+	
+	
+	A:
+	printf("\n\t\t\tFirst Name: ");
+	scanf("%s",p.First_Name);
+	p.First_Name[0]=toupper(p.First_Name[0]);
+	if(strlen(p.First_Name)>20||strlen(p.First_Name)<2)
+	{
+		printf("\n\t Invalid :( \t The max range for first name is 20 and min range is 2 :)");
+		goto A;
+	}
+	else
+	{
+		for (b=0;b<strlen(p.First_Name);b++)
 		{
-			cout << "Welcome Doctor\n" << "------------------------------------------------------------------------------------\n";
-			while (1)
+			if (isalpha(p.First_Name[b]))
 			{
-				std::cout << " \n \t 1.Add \n \t 2.Search \n \t 3.Delete \n \t 4.Display  \n \t 5.Update \n \t 6.Description based search \n \t 7. Gender based search \n  \t 8.exit \n";
-				cin >> ch;
-				switch (ch)
-				{
-					//add
-				case 1:
-				{
-
-
-					file1.open("record.txt", ios::app | ios::out);
-
-					int n;
-					cout << "\n Enter no of patients \t";
-					cin >> n;
-					cout << " Enter their details \n ";
-					file4.open("no.txt", ios::in);
-					file4 >> no;
-					for (i = no;i < no + n;i++)
-					{
-						cout << "\n Enter " << i + 1 << " patient \n";
-
-						cout << " \n enter patient's id \t";
-						cin >> rec[i].id;
-						std::cout << "\n Name: \t";
-						cin >> rec[i].name;
-						std::cout << "\n Gender[m/f]: \t";
-						cin >> rec[i].gender;
-						std::cout << "\n Age: \t";
-						cin >> rec[i].age;
-						std::cout << "\n Description: \t";
-						cin >> rec[i].description;
-
-						int q = search_id(rec[i].id, i);
-						file1 << i << "|" << rec[i].id << "|" << rec[i].name << "|" << rec[i].age << "|" << rec[i].gender << "|" << rec[i].description << "\n";
-					}
-					file1.close();
-					no = no + n;
-					fstream file1, file3, file2;
-					file3.open("no.txt", ios::out);
-					file3 << no;
-					file3.close();
-					file2.open("index.txt", ios::out);
-					file1.open("record.txt", ios::in);
-					for (i = 0;i < no;i++)
-					{
-						file1.getline(ind, 5, '|');
-						file1.getline(id, 20, '|');
-						file1.getline(name, 30, '|');
-						file1.getline(age, 10, '|');
-						file1.getline(gender, 50, '|');
-						file1.getline(description, 30, '\n');
-						strcpy_s(rec[i].ind, ind);
-
-						strcpy_s(in[i].id, id);
-
-						strcpy_s(in[i].ind, ind);
-					}
-
-					sort_index();
-					std::cout << "\n After sorting,index file contents are:\n";
-					for (i = 0;i < no;i++)
-						std::cout << in[i].id << " " << in[i].ind << endl;
-					for (i = 0;i < no;i++)
-					{
-						file2 << in[i].id << "|" << in[i].ind << "\n";
-					}
-					file1.close();
-					file2.close();
-
-					break;
-
-				}
-
-				//search
-
-				case 2:
-				{
-					fstream f4;
-					f4.open("no.txt", ios::in);
-					f4 >> no;
-					//cout << no;
-					cout << " \n Enter patient's id whose details are to be displayed:  \t";
-					cin >> id;
-					int q = search_index(id);
-					if (q == 1)
-						cout << "\n success search \n";
-					else
-						cout << "\n unsuccess search \t";
-
-					break;
-				}
-				//deletion
-				case 3: {
-					cout << "\n Enter patient  id who is to be deleted \n ";
-					cin >> st_id;
-					delet(st_id);
-					break;
-				}
-						//display
-				case 4:
-				{
-					fstream file1;
-					file1.open("record.txt", ios::in);
-					std::cout << "ID \t NAME\t AGE \t GENDER \t DESCRIPTION \n";
-
-					while (!file1.eof())
-					{
-						file1.getline(ind, 5, '|');
-						file1.getline(id, 20, '|');
-						file1.getline(name, 30, '|');
-						file1.getline(age, 10, '|');
-						file1.getline(gender, 50, '|');
-						file1.getline(description, 30, '\n');
-
-						cout << id << "\t" << name << "\t" << age << "\t    " << gender << "\t \t   " << description << "\n" << endl;
-
-					}
-					file1.close();
-					break;
-
-				}
-				//exit
-				case 8:
-				{
-					cout << "\n Ending prog";
-					goto label;
-
-				}
-				//gender
-				case 7:
-				{
-					fstream f4;
-					f4.open("no.txt", ios::in);
-					f4 >> no;
-					//cout << no;
-					cout << "Enter the Gender to be searched upon: \t";
-					cin >> gender;
-					ret_gender(gender);
-					break;
-
-				}
-				//desc search
-				case 6:
-				{
-					fstream f4;
-					f4.open("no.txt", ios::in);
-					f4 >> no;
-					//cout << no;
-					cout << "Enter the Description to be searched upon: \t";
-					cin >> description;
-					ret_desc(description);
-					break;
-
-				}
-				//update
-				case 5:
-				{
-
-					rec_flag = 0;
-					int fr = 0;
-					cout << "\n Enter patientt's id to be updated : \t";
-					cin >> st_id;
-					rec_flag = search_index(st_id);
-					if (rec_flag == -1)
-					{
-						std::cout << "\n Failed record not found";
-						break;
-					}
-
-					for (int i = 0;i < no;i++)
-					{
-						if (strcmp(rec[i].ind, rec_ind) == 0)
-						{
-							std::cout << "\nThe old values of the patient record  are ";
-							std::cout << "\n id  = " << rec[i].id;
-							std::cout << "\n name   = " << rec[i].name;
-							std::cout << "\n age   = " << rec[i].age;
-							std::cout << "\n gender   = " << rec[i].gender;
-
-							std::cout << "\n description   = " << rec[i].description;
-
-							std::cout << "\nEnter the new values \n";
-							std::cout << "\nid  = ";  cin >> rec[i].id;
-							std::cout << "\nname   = ";  cin >> rec[i].name;
-							std::cout << "\nage    = ";  cin >> rec[i].age;
-							std::cout << "\ngender   = ";  cin >> rec[i].gender;
-
-							std::cout << "\n description   = "; cin >> rec[i].description;
-							break;
-						}
-					}
-
-					fstream f1, f2;
-					f1.open("record.txt", ios::out);
-					f2.open("index.txt", ios::out);
-
-					for (int i = 0;i < no;i++)
-					{
-
-						strcpy_s(in[i].id, rec[i].id);
-						strcpy_s(in[i].ind, rec[i].ind);
-
-					}
-					sort_index();
-					for (int i = 0;i < no;i++)
-					{
-						f1 << rec[i].ind << "|" << rec[i].id << "|" << rec[i].name << "|" << rec[i].age << "|" << rec[i].gender << "|" << rec[i].description << "\n";
-						f2 << in[i].id << "|" << in[i].ind << "\n";
-
-					}
-
-					f1.close();
-					f2.close();
-					std::cout << "\n updation successful\n";
-
-
-				}
-
-
-				}
+				valid=1;
 			}
-
-
+			else
+			{
+				valid=0;
+				break;
+			}
 		}
-		else {
-
-			cout << "\n Invalid login";
-
+		if(!valid)
+		{
+			printf("\n\t\t First name contain Invalid character :(  Enter again :)");
+			goto A;
 		}
+	}
+	
+	
+	B:
+	printf("\n\t\t\tLast Name: ");
+    scanf("%s",p.Last_Name);
+    p.Last_Name[0]=toupper(p.Last_Name[0]);
+    if(strlen(p.Last_Name)>20||strlen(p.Last_Name)<2)
+	{
+		printf("\n\t Invalid :( \t The max range for last name is 20 and min range is 2 :)");
+		goto B;
+	}
+	else
+	{
+		for (b=0;b<strlen(p.Last_Name);b++)
+		{
+			if (isalpha(p.Last_Name[b]))
+			{
+				valid=1;
+			}
+			else
+			{
+				valid=0;
+				break;
+			}
+		}
+		if(!valid)
+		{
+			printf("\n\t\t Last name contain Invalid character :(  Enter again :)");
+			goto B;
+		}
+	}
+   
+	do
+	{
+	    printf("\n\t\t\tGender[F/M]: ");
+		scanf(" %c",&p.Gender);
+		if(toupper(p.Gender)=='M'|| toupper(p.Gender)=='F')
+		{
+			ok =1;
+		}
+		else 
+		{
+		ok =0;
+		}
+        if(!ok)
+	    {
+	    	printf("\n\t\t Gender contain Invalid character :(  Enter either F or M :)");
+    	}
+	 }	while(!ok);
 
+    printf("\n\t\t\tAge:");
+    scanf(" %i",&p.age);
+   
+    do
+    {
+    C:
+    printf("\n\t\t\tAddress: ");
+    scanf("%s",p.Address);
+    p.Address[0]=toupper(p.Address[0]);
+    if(strlen(p.Address)>20||strlen(p.Address)<4)
+	{
+		printf("\n\t Invalid :( \t The max range for address is 20 and min range is 4 :)");
+		goto C;
+	}
+	
+}while(!valid);
 
+do
+{
+	D:
+    printf("\n\t\t\tContact no: ");
+    scanf("%s",p.Contact_no);
+    if(strlen(p.Contact_no)>10||strlen(p.Contact_no)!=10)
+	{
+		printf("\n\t Sorry :( Invalid. Contact no. must contain 10 numbers. Enter again :)");
+		goto D;
+	}
+	else
+	{
+		for (b=0;b<strlen(p.Contact_no);b++)
+		{
+			if (!isalpha(p.Contact_no[b]))
+			{
+				valid=1;
+			}
+			else
+			{
+				valid=0;
+				break;
+			}
+		}
+		if(!valid)
+		{
+			printf("\n\t\t Contact no. contain Invalid character :(  Enter again :)");
+			goto D;
+		}
+	}
+}while(!valid);
 
+do
+{
+    printf("\n\t\t\tEmail: ");
+    scanf("%s",p.Email);
+    if (strlen(p.Email)>30||strlen(p.Email)<8)
+    {
+       printf("\n\t Invalid :( \t The max range for email is 30 and min range is 8 :)");	
+	}
+}while(strlen(p.Email)>30||strlen(p.Email)<8);
 
-		break;
-
-
+    E:
+    printf("\n\t\t\tProblem: ");
+    scanf("%s",p.Problem);
+    p.Problem[0]=toupper(p.Problem[0]);
+    if(strlen(p.Problem)>15||strlen(p.Problem)<3)
+	{
+		printf("\n\t Invalid :( \t The max range for first name is 15 and min range is 3 :)");
+		goto E;
+	}
+	else
+	{
+		for (b=0;b<strlen(p.Problem);b++)
+		{
+			if (isalpha(p.Problem[b]))
+			{
+				valid=1;
+			}
+			else
+			{
+				valid=0;
+				break;
+			}
+		}
+		if(!valid)
+		{
+			printf("\n\t\t Problem contain Invalid character :(  Enter again :)");
+			goto E;
+		}
 	}
 
-	case 2: {
-		fstream f4;
-		f4.open("no.txt", ios::in);
-		f4 >> no;
-		cout << " \n Enter the  Patient's id whose details are to be displayed \t";
-		cin >> id;
-		int q = search_index(id);
-		if (q == 1)
-			cout << "\n success search";
-		else
-			cout << "\n unsuccess search";
-
-		break;
+	F:
+    printf("\n\t\t\tPrescribed Doctor:");
+    scanf("%s",p.Doctor);
+    p.Doctor[0]=toupper(p.Doctor[0]);
+    if(strlen(p.Doctor)>30||strlen(p.Doctor)<3)
+	{
+		printf("\n\t Invalid :( \t The max range for first name is 30 and min range is 3 :)");
+		goto F;
 	}
-
-
+	else
+	{
+		for (b=0;b<strlen(p.Doctor);b++)
+		{
+			if (isalpha(p.Doctor[b]))
+			{
+				valid=1;
+			}
+			else
+			{
+				valid=0;
+				break;
+			}
+		}
+		if(!valid)
+		{
+			printf("\n\t\t Doctor name contain Invalid character :(  Enter again :)");
+			goto F;
+		}
 	}
+    
+    fprintf(ek," %s %s %c %i %s %s %s %s %s\n", p.First_Name, p.Last_Name, p.Gender, p.age, p.Address, p.Contact_no, p.Email, p.Problem, p.Doctor);
+    printf("\n\n\t\t\t.... Information Record Successful ...");
+    fclose(ek);
+    sd:
+    getch();
+    printf("\n\n\t\t\tDo you want to add more[Y/N]?? ");
+    scanf(" %c",&ans);
+    if (toupper(ans)=='Y')
+	{
+    	Add_rec();
+	}
+    else if(toupper(ans)=='N')
+	{
+		printf("\n\t\t Thank you :) :)");
+    	getch();
+    	MainMenu();
+	}
+    else
+    {
+        printf("\n\t\tInvalid Input\n");
+        goto sd;
+    }
+}
 
-	return 0;
+void func_list()
+{
+	int row;
+	system("cls");
+	Title();
+	FILE *ek;
+	ek=fopen("Record2.txt","r");
+	printf("\n\n\t\t\t!!!!!!!!!!!!!! List Patients Record !!!!!!!!!!!!!\n");
+	gotoxy(1,15);
+		printf("Full Name");
+		gotoxy(20,15);
+		printf("Gender");
+		gotoxy(32,15);
+		printf("Age");
+		gotoxy(37,15);
+		printf("Address");
+		gotoxy(49,15);
+		printf("Contact No.");
+		gotoxy(64,15);
+		printf("Email");
+		gotoxy(88,15);
+		printf("Problem");
+		gotoxy(98,15);
+		printf("Prescribed Doctor\n");
+		printf("=================================================================================================================");
+		row=17;
+		while(fscanf(ek,"%s %s %c %i %s %s %s %s %s\n", p.First_Name, p.Last_Name, 
+					&p.Gender, &p.age, p.Address, p.Contact_no, p.Email, p.Problem, p.Doctor)!=EOF)
+		{
+			gotoxy(1,row);
+			printf("%s %s",p.First_Name, p.Last_Name);
+			gotoxy(20,row);
+			printf("%c",p.Gender);
+			gotoxy(32,row);
+			printf("%i",p.age);
+			gotoxy(37,row);
+			printf("%s",p.Address);
+			gotoxy(49,row);
+			printf("%s",p.Contact_no);
+			gotoxy(64,row);
+			printf("%s",p.Email);
+			gotoxy(88,row);
+			printf("%s",p.Problem);
+			gotoxy(98,row);
+			printf("%s",p.Doctor);
+			row++;
+		}
+		fclose(ek);
+		getch();
+		MainMenu();
+}
+void Search_rec(void)
+{
+	char name[20];
+	system("cls");
+	Title();
+	FILE *ek;
+	ek=fopen("Record2.txt","r");
+	printf("\n\n\t\t\t!!!!!!!!!!!!!! Search Patients Record !!!!!!!!!!!!!\n");
+	gotoxy(12,8);
+	printf("\n Enter Patient Name to be viewed:");
+	scanf("%s",name);
+	fflush(stdin);
+	name[0]=toupper(name[0]);
+	while(fscanf(ek,"%s %s %c %i %s %s %s %s %s\n", p.First_Name, p.Last_Name, &p.Gender, &p.age, p.Address, p.Contact_no, p.Email, p.Problem, p.Doctor)!=EOF)
+	{
+		if(strcmp(p.First_Name,name)==0)
+		{
+			gotoxy(1,15);
+			printf("Full Name");
+			gotoxy(25,15);
+			printf("Gender");
+			gotoxy(32,15);
+			printf("Age");
+			gotoxy(37,15);
+			printf("Address");
+			gotoxy(52,15);
+			printf("Contact No.");
+			gotoxy(64,15);
+			printf("Email");
+			gotoxy(80,15);
+			printf("Problem");
+			gotoxy(95,15);
+			printf("Prescribed Doctor\n");
+			printf("=================================================================================================================");
+			gotoxy(1,18);
+			printf("%s %s",p.First_Name, p.Last_Name);
+			gotoxy(25,18);
+			printf("%c",p.Gender);
+			gotoxy(32,18);
+			printf("%i",p.age);
+			gotoxy(37,18);
+			printf("%s",p.Address);
+			gotoxy(52,18);
+			printf("%s",p.Contact_no);
+			gotoxy(64,18);
+			printf("%s",p.Email);
+			gotoxy(80,18);
+			printf("%s",p.Problem);
+			gotoxy(95,18);
+			printf("%s",p.Doctor);
+			printf("\n");
+			break;
+		}
+	   }
+	   if(strcmp(p.First_Name,name)!=0)
+	   {
+		gotoxy(5,10);
+		printf("Record not found!");
+		getch();
+	   }
+	fclose(ek);
+	L:
+	getch();
+	printf("\n\n\t\t\tDo you want to view more[Y/N]??");
+    scanf("%c",&ans);
+    if (toupper(ans)=='Y')
+    {
+        Search_rec();
+    }
+	else if(toupper(ans)=='N')
+	{
+		printf("\n\t\t Thank you :) :)");
+    	getch();
+		MainMenu();
+    }
+	else
+    {
+    	printf("\n\tInvalid Input.\n");
+    	goto L;
+    }
+}
+
+void Edit_rec(void)
+{
+	FILE *ek, *ft;
+  int i,b, valid=0;
+  char ch;
+  char name[20];
+
+  system("cls");
+  	Title();
+ 		ft=fopen("temp2.txt","w+");
+	   ek=fopen("Record2.txt","r");
+	   if(ek==NULL)
+	   {
+		printf("\n\t Can not open file!! ");
+		getch();
+		MainMenu();
+	   }
+       	printf("\n\n\t\t\t!!!!!!!!!!!!!! Edit Patients Record !!!!!!!!!!!!!\n");
+	   	gotoxy(12,13);
+	   	printf("Enter the First Name of the Patient : ");
+	   	scanf(" %s",name);
+	   	fflush(stdin);
+	   	name[0]=toupper(name[0]);
+		gotoxy(12,15);
+		
+		if(ft==NULL)
+		{
+			printf("\n Can not open file");
+			getch();
+			MainMenu();
+		}
+		while(fscanf(ek,"%s %s %c %i %s %s %s %s %s\n", p.First_Name, p.Last_Name, &p.Gender, &p.age, p.Address, p.Contact_no, p.Email, p.Problem, p.Doctor)!=EOF)
+		{
+			if(strcmp(p.First_Name, name)==0)
+			{
+				valid=1;
+				gotoxy(25,17);
+				printf("* Existing Record *");
+				gotoxy(10,19);
+				printf("%s \t%s \t%c \t%i \t%s \t%s \t%s \t%s \t%s\n",p.First_Name,p.Last_Name,p.Gender, p.age,p.Address,p.Contact_no,p.Email,p.Problem,p.Doctor);
+				gotoxy(12,22);	
+				printf("Enter New First Name: ");
+				scanf("%s",p.First_Name);    
+				gotoxy(12,24);
+				printf("Enter Last Name: ");
+				scanf("%s",p.Last_Name);
+				gotoxy(12,26);
+				printf("Enter Gender: ");
+				scanf(" %c",&p.Gender);
+				p.Gender=toupper(p.Gender);
+				gotoxy(12,28);
+				printf("Enter age: ");
+				scanf(" %i",&p.age);
+				gotoxy(12,30);
+				printf("Enter Address: ");
+				scanf("%s",p.Address);
+				p.Address[0]=toupper(p.Address[0]);
+				gotoxy(12,32);
+				printf("Enter Contact no: ");
+				scanf("%s",p.Contact_no);
+				gotoxy(12,34);
+				printf("Enter New email: ");
+				scanf("%s",p.Email);
+			    gotoxy(12,36);
+				printf("Enter Problem: ");
+				scanf("%s",p.Problem);
+				p.Problem[0]=toupper(p.Problem[0]);
+			    gotoxy(12,38);
+				printf("Enter Doctor: ");
+			    scanf("%s",p.Doctor);
+			    p.Doctor[0]=toupper(p.Doctor[0]);
+			    printf("\nPress U charecter for the Updating operation : ");
+				ch=getche();
+				if(ch=='u' || ch=='U')
+				{
+				fprintf(ft,"%s %s %c %i %s %s %s %s %s\n",p.First_Name,p.Last_Name,p.Gender, p.age,p.Address,p.Contact_no,p.Email,p.Problem,p.Doctor);
+				printf("\n\n\t\t\tPatient record updated successfully...");
+				}					
+			}
+			else
+			{
+			fprintf(ft,"%s %s %c %i %s %s %s %s %s\n",p.First_Name,p.Last_Name,p.Gender, p.age,p.Address,p.Contact_no,p.Email,p.Problem,p.Doctor);	
+			}
+		 }
+		 if(!valid) printf("\n\t\tNO RECORD FOUND...");
+	   fclose(ft);
+	   fclose(ek);
+	   remove("Record2.txt");
+   	   rename("temp2.txt","Record2.txt");
+		getch();
+		MainMenu();		
+}
+void Dlt_rec()
+{
+	char name[20];
+	int found=0;
+	system("cls");
+	Title();
+	FILE *ek, *ft;
+	ft=fopen("temp_file2.txt","w+");
+	ek=fopen("Record2.txt","r");
+	printf("\n\n\t\t\t!!!!!!!!!!!!!! Delete Patients Record !!!!!!!!!!!!!\n");
+	gotoxy(12,8);
+	printf("\n Enter Patient Name to delete: ");
+	fflush(stdin);
+	gets(name);
+	name[0]=toupper(name[0]);
+	
+	while (fscanf(ek,"%s %s %c %i %s %s %s %s %s", p.First_Name, p.Last_Name, &p.Gender,
+			 &p.age, p.Address, p.Contact_no, p.Email, p.Problem, p.Doctor)!=EOF)
+	{
+		if (strcmp(p.First_Name,name)!=0)
+		fprintf(ft,"%s %s %c %i %s %s %s %s %s\n", p.First_Name, p.Last_Name, p.Gender, p.age, p.Address, p.Contact_no, p.Email, p.Problem, p.Doctor);
+		else 
+		{
+			printf("%s %s %c %i %s %s %s %s %s\n", p.First_Name, p.Last_Name, p.Gender, p.age, p.Address, p.Contact_no, p.Email, p.Problem, p.Doctor);
+			found=1;
+		}
+	}
+	if(found==0)
+	{
+		printf("\n\n\t\t\t Record not found....");
+		getch();
+		MainMenu();
+	}
+	else
+	{
+		fclose(ek);
+		fclose(ft);
+		remove("Record2.txt");
+		rename("temp_file2.txt","Record2.txt");
+		printf("\n\n\t\t\t Record deleted successfully :) ");
+		getch();
+		MainMenu();
+	}
 }
